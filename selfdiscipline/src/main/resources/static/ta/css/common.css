@@ -1,0 +1,69 @@
+/*窗口蒙层*/
+.ta-window-mc {
+    width: 100%;
+    background-color: rgba(74, 74, 74, 0.64);
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+/*窗口div样式*/
+.ta-window-div {
+    background-color: #e6e4f0;
+    border-radius: 10px;
+    -webkit-box-shadow: 4px 0 15px #463367;
+    -moz-box-shadow: 4px 0 15px #463367;
+    box-shadow: 4px 0 15px #463367;
+    position: relative;
+    top: 50px;
+    left: 90px;
+}
+
+/*窗口title样式*/
+.ta-window-title {
+    height: 30px;
+    font-family: 黑体;
+    font-size: 19px;
+    padding-left: 6px;
+}
+
+/*窗口最大化按钮样式*/
+.ta-window-maximize {
+    background-image: url("/static/ta/images/maximize.png");
+    text-align: center;
+    height: 30px;
+    width: 50px;
+    font-size: 19px;
+    color: red;
+    cursor: pointer;
+    opacity: 0.4;
+    border-radius: 2px;
+}
+
+.ta-window-maximize:hover {
+    -webkit-box-shadow: 3px 0 3px #a29bad;
+    -moz-box-shadow: 3px 0 3px #a29bad;
+    box-shadow: 3px 0 3px #a29bad;
+}
+
+/*窗口关闭按钮样式*/
+.ta-window-close {
+    background-image: url("/static/ta/images/close.png");
+    margin-left: 6px;
+    text-align: center;
+    height: 30px;
+    width: 50px;
+    font-size: 28px;
+    color: red;
+    cursor: pointer;
+    opacity: 0.4;
+    border-radius: 2px;
+    margin-right: 3px;
+}
+
+.ta-window-close:hover {
+    background-image: url("/static/ta/images/close_hover.png");
+    -webkit-box-shadow: 3px 0 3px #a29bad;
+    -moz-box-shadow: 3px 0 3px #a29bad;
+    box-shadow: 3px 0 3px #a29bad;
+}

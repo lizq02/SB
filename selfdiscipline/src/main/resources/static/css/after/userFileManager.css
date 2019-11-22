@@ -1,0 +1,51 @@
+h1 {
+    cursor: pointer;
+}
+.height_full {
+    height: 100%;
+}
+
+/*left div*/
+.row-left-div {
+    border-right: 3px solid #eeeaff;
+    background: -webkit-gradient(linear, 0 0, 0 100%, from(#44ffb8), to(#2c90ff));
+    background: -webkit-linear-gradient(to bottom right, #44ffb8, #2c90ff);
+    background: -moz-linear-gradient(to bottom right, #44ffb8, #2c90ff);
+    background: -o-linear-gradient(to bottom right, #44ffb8, #2c90ff);
+    background: -ms-linear-gradient(to bottom right, #44ffb8, #2c90ff);
+    background: linear-gradient(to bottom right, #44ffb8, #2c90ff);
+}
+
+/*right div*/
+.row-right-div {
+}
+
+/*left 目录 item 样式*/
+.item {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    cursor: pointer;
+}
+.item:hover {
+    background-color: #5bc0de;
+}
+
+/*圆形边框样式*/
+.circle-border {
+    border-radius: 50%;
+    padding: 0px 4px;
+    font-size: 16px;
+}
+
+/*加号 样式*/
+.add-image {
+    margin-right: 10px;
+    cursor: pointer;
+    z-index: 99;
+}
+.add-image:hover {
+    -webkit-box-shadow: 0 0 5px rgb(241, 66, 30);
+    -moz-box-shadow: 0 0 5px rgb(241, 66, 30);
+    box-shadow: 0 0 5px rgb(241, 66, 30);
+}

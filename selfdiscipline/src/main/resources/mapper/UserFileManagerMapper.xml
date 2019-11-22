@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzq.selfdiscipline.mapper.UserFileManagerMapper">
+    <sql id="userCatalogues">
+        a.id AS id,
+        a.user_id AS user_id,/*用户id*/
+        a.catalogue_pid AS cataloguePid,/*目录父id*/
+        a.catalogue_name AS catalogueName,/*目录名称*/
+        a.catalogue_path AS cataloguePath,/*目录绝对路径*/
+        a.catalogue_id_path AS catalogueIdPath,/*目录id绝对路径*/
+        a.file_number AS fileNumber,/*文件数量*/
+        a.order_no AS orderNo,/*排序号*/
+        a.create_time AS createTime,/*创建时间*/
+        a.effetive AS effetive/*有效标志(0-无效 1-有效)*/
+    </sql>
+
+    <!--根据 用户id 查询用户文件目录信息-->
+    <select id="queryUserCatalogues" resultType="java.util.Map">
+        SELECT a.id AS id,
+               a.catalogue_pid AS cataloguePid,/*目录父id*/
+               a.catalogue_name AS catalogueName,/*目录名称*/
+               a.catalogue_path AS cataloguePath,/*目录绝对路径*/
+               a.catalogue_id_path AS catalogueIdPath,/*目录id绝对路径*/
+               a.file_number AS fileNumber,/*文件数量*/
+               a.effetive AS effetive/*有效标志(0-无效 1-有效)*/
+          FROM user_file_catalogue a
+         WHERE a.user_id = #{userid}/*用户id*/
+           AND a.effetive = #{effetive}/*有效标志(0-无效 1-有效)*/
+         ORDER BY a.order_no,create_time
+    </select>
+
+    <!--根据条件查询用户文件信息-->
+    <select id="queryFiles" resultType="java.util.Map">
+        SELECT tb2.file_name AS fileName,
+               tb2.file_type AS fileType,
+               tb2.file_size AS fileSize,
+               tb2.file_url AS fileUrl,
+               tb2.file_preview_url AS filePreviewUrl,
+               DATE_FORMAT(tb2.add_time, '%Y-%m-%d %H:%i:%s') AS addTime,
+               tb3.id AS catalogueId,
+               tb3.catalogue_pid AS cataloguePid,/*目录父id*/
+               tb3.catalogue_name AS catalogueName,/*目录名称*/
+               tb3.catalogue_path AS cataloguePath,/*目录绝对路径*/
+               tb3.catalogue_id_path AS catalogueIdPath,/*目录id绝对路径*/
+               tb3.file_number AS fileNumber/*文件数量*/
+          FROM (SELECT a.user_file_catalogue_id AS user_file_catalogue_id,
+                       a.file_manager_id AS file_manager_id
+                FROM catalogue_file a/*目录文件管理表*/
+                <if test="catalogueIds != null">
+                    WHERE a.user_file_catalogue_id IN
+                    <foreach collection="catalogueIds" item="catalogueId" separator="," open="(" close=")">
+                        #{catalogueId}
+                    </foreach>
+                </if>
+             ) tb1
+         INNER JOIN file_manager tb2/*文件管理表*/
+            ON tb2.id = tb1.file_manager_id/*文件管理id*/
+         INNER JOIN user_file_catalogue tb3
+            ON tb3.id = tb1.user_file_catalogue_id /*用户文件目录id*/
+           AND tb3.user_id = #{userid}/*用户id*/
+           AND tb3.effetive = #{effetive}/*有效标志(0-无效 1-有效)*/
+    </select>
+</mapper>
