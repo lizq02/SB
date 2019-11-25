@@ -83,7 +83,7 @@
 
     // 加载用户文件目录
     function initUserCatalogues() {
-        Base.submit("", "userFileManager/userFileManagerController!queryUserCatalogues.do", null, null, function (data) {
+        Base.submit("", "userFileManagerController!queryUserCatalogues.do", null, null, function (data) {
             var htmlStr = "";
             if (data.code == "0") {
                 var list = data.data;
@@ -148,7 +148,7 @@
         var params = {
             "catalogueId": $(obj).attr("catalogueId")
         };
-        Base.submit("", "userFileManager/userFileManagerController!queryFiles.do", params, null, function (data) {
+        Base.submit("", "userFileManagerController!queryFiles.do", params, null, function (data) {
             console.log(data)
         });
     }

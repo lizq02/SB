@@ -31,14 +31,4 @@ public class PageController {
     public String getLoginPage() {
         return "login";
     }
-
-    /**
-     * 用户文件管理
-     *
-     * @return
-     */
-    @GetMapping("/getUserFileManagerPage.do")
-    public String getUserFileManagerPage() {
-        return "after/userFileManager";
-    }
 }
