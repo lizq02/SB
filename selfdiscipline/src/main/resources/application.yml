@@ -1,3 +1,13 @@
+# 虚拟路径映射
+virtualPathmap: filepreview
+# openoffice配置
+openoffice:
+  host: 49.233.77.204
+  port: 8100
+# 系统文件存储路径前缀
+filepath:
+  windows_file_path: F:\lizqIDEA\selfdiscipline\testFiles\
+  linux_file_path: /xxx/
 server:
   port: 8081
   address: 127.0.0.1
@@ -5,7 +15,7 @@ spring:
   datasource:
     url: jdbc:mysql://49.233.77.204:3306/selfDiscipline?characterEncoding=utf8&&useSSL=false
     username: selfDiscipline
-    password: self-discipline
+    password: selfDiscipline@!.*12345
     driver-class-name: com.mysql.jdbc.Driver
     # hikari连接池的配置
     hikari:
@@ -44,6 +54,10 @@ spring:
     # Name of the RequestContext attribute for all views.
     # 所有视图的RequestContext属性的名称。
     request-context-attribute: request
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 # mybatis
 mybatis:
   mapper-locations: classpath:/mapper/**/*Mapper.xml
@@ -53,4 +67,7 @@ logging:
     com:
       lzq:
         selfdiscipline:
-          mapper: debug
+          ta:
+            mapper: debug
+          business:
+            mapper: debug

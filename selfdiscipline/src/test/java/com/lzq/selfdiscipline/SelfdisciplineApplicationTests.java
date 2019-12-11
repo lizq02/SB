@@ -1,4 +1,4 @@
-package com.lzq.selfdiscipline;
+package com.lzq;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

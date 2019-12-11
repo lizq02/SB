@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzq.selfdiscipline.business.mapper.UserFileManagerMapper">
+    <sql id="userCatalogues">
+        a.id AS id,
+        a.user_id AS userId,/*用户id*/
+        a.catalogue_pid AS cataloguePid,/*目录父id*/
+        a.catalogue_name AS catalogueName,/*目录名称*/
+        a.catalogue_path AS cataloguePath,/*目录绝对路径*/
+        a.catalogue_id_path AS catalogueIdPath,/*目录id绝对路径*/
+        a.cata_describe AS cataDescribe,/*描述*/
+        a.file_number AS fileNumber,/*文件数量*/
+        a.order_no AS orderNo,/*排序号*/
+        a.create_time AS createTime,/*创建时间*/
+        a.effetive AS effetive/*有效标志(0-无效 1-有效)*/
+    </sql>
+
+    <!--修改 用户文件目录-->
+    <update id="updateDirectory" parameterType="com.lzq.selfdiscipline.business.bean.UserFileCatalogueBean">
+        UPDATE user_file_catalogue SET
+               catalogue_pid = #{cataloguePid},/*目录父id*/
+               catalogue_name = #{catalogueName},/*目录名称*/
+               catalogue_path = #{cataloguePath},/*目录绝对路径*/
+               catalogue_id_path = #{catalogueIdPath},/*目录id绝对路径*/
+               cata_describe = #{cataDescribe}/*描述*/
+         WHERE user_id = #{userId}/*用户id*/
+           AND id = #{id}
+    </update>
+
+    <!--根据id 删除用户文件目录-->
+    <delete id="deleteDirectoryById">
+        DELETE FROM user_file_catalogue WHERE id = #{id} ANd user_id = #{userid}
+    </delete>
+
+    <!--根据 用户id 查询用户文件目录信息-->
+    <select id="queryUserCatalogues" resultType="java.util.Map">
+        SELECT a.id AS id,
+               a.catalogue_pid AS cataloguePid,/*目录父id*/
+               a.catalogue_name AS catalogueName,/*目录名称*/
+               a.catalogue_path AS cataloguePath,/*目录绝对路径*/
+               a.catalogue_id_path AS catalogueIdPath,/*目录id绝对路径*/
+               a.cata_describe AS cataDescribe,/*描述*/
+               a.file_number AS fileNumber,/*文件数量*/
+               a.effetive AS effetive/*有效标志(0-无效 1-有效)*/
+          FROM user_file_catalogue a
+         WHERE a.user_id = #{userid}/*用户id*/
+           AND a.effetive = #{effetive}/*有效标志(0-无效 1-有效)*/
+         ORDER BY a.order_no,create_time
+    </select>
+
+    <!--根据条件查询用户文件信息-->
+    <select id="queryFiles" resultType="java.util.Map">
+        SELECT tb2.id AS fileId,
+               tb2.file_name AS fileName,
+               tb2.file_type AS fileType,
+               tb2.file_size AS fileSize,
+               tb2.file_url AS fileUrl,
+               tb2.file_preview_url AS filePreviewUrl,
+               DATE_FORMAT(tb2.add_time, '%Y-%m-%d %H:%i:%s') AS addTime,
+               tb3.id AS catalogueId,
+               tb3.catalogue_pid AS cataloguePid,/*目录父id*/
+               tb3.catalogue_name AS catalogueName,/*目录名称*/
+               tb3.catalogue_path AS cataloguePath,/*目录绝对路径*/
+               tb3.catalogue_id_path AS catalogueIdPath,/*目录id绝对路径*/
+               tb3.file_number AS fileNumber/*文件数量*/
+          FROM (SELECT a.user_file_catalogue_id AS user_file_catalogue_id,
+                       a.file_manager_id AS file_manager_id
+                FROM catalogue_file a/*目录文件管理表*/
+                <if test="catalogueIds != null">
+                    WHERE a.user_file_catalogue_id IN
+                    <foreach collection="catalogueIds" item="catalogueId" separator="," open="(" close=")">
+                        #{catalogueId}
+                    </foreach>
+                </if>
+             ) tb1
+         INNER JOIN file_manager tb2/*文件管理表*/
+            ON tb2.id = tb1.file_manager_id/*文件管理id*/
+         INNER JOIN user_file_catalogue tb3
+            ON tb3.id = tb1.user_file_catalogue_id /*用户文件目录id*/
+           AND tb3.user_id = #{userid}/*用户id*/
+           AND tb3.effetive = #{effetive}/*有效标志(0-无效 1-有效)*/
+         ORDER BY tb2.add_time DESC
+           <if test="startPage != null and pageSize != null">
+               LIMIT #{startPage}, #{pageSize}
+           </if>
+    </select>
+
+    <!--根据 统计 条件查询用户文件信息-->
+    <select id="countQueryFiles" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM (SELECT a.user_file_catalogue_id AS user_file_catalogue_id,
+        a.file_manager_id AS file_manager_id
+        FROM catalogue_file a/*目录文件管理表*/
+        <if test="catalogueIds != null">
+            WHERE a.user_file_catalogue_id IN
+            <foreach collection="catalogueIds" item="catalogueId" separator="," open="(" close=")">
+                #{catalogueId}
+            </foreach>
+        </if>
+        ) tb1
+        INNER JOIN file_manager tb2/*文件管理表*/
+        ON tb2.id = tb1.file_manager_id/*文件管理id*/
+        INNER JOIN user_file_catalogue tb3
+        ON tb3.id = tb1.user_file_catalogue_id /*用户文件目录id*/
+        AND tb3.user_id = #{userid}/*用户id*/
+        AND tb3.effetive = #{effetive}/*有效标志(0-无效 1-有效)*/
+    </select>
+
+    <!--根据id 查询 用户文件目录-->
+    <select id="getUserCataloguesById" resultType="com.lzq.selfdiscipline.business.bean.UserFileCatalogueBean">
+        SELECT
+        <include refid="userCatalogues" />
+         FROM user_file_catalogue a
+        WHERE a.id = #{id}
+          AND a.effetive = #{effetive}/*有效标志(0-无效 1-有效)*/
+    </select>
+
+    <!--根据目录id 查询 用户目录信息-->
+    <select id="queryUserCatalogueByid" resultType="com.lzq.selfdiscipline.business.bean.UserFileCatalogueBean">
+        SELECT
+        <include refid="userCatalogues" />
+        FROM user_file_catalogue a
+        WHERE a.id = #{id}
+        AND a.user_id = #{userid}
+        AND a.effetive = #{effetive}
+    </select>
+
+    <!--新增 用户文件目录-->
+    <insert id="insertDirectory" parameterType="com.lzq.selfdiscipline.business.bean.UserFileCatalogueBean">
+        INSERT INTO user_file_catalogue(
+        id,
+        user_id,/*用户id*/
+        catalogue_pid,/*目录父id*/
+        catalogue_name,/*目录名称*/
+        catalogue_path,/*目录绝对路径*/
+        catalogue_id_path,/*目录id绝对路径*/
+        cata_describe,/*描述*/
+        file_number,/*文件数量*/
+        order_no,/*排序号*/
+        create_time,/*创建时间*/
+        effetive/*有效标志(0-无效 1-有效)*/
+        ) VALUES (
+        #{id},
+        #{userId},/*用户id*/
+        #{cataloguePid},/*目录父id*/
+        #{catalogueName},/*目录名称*/
+        #{cataloguePath},/*目录绝对路径*/
+        #{catalogueIdPath},/*目录id绝对路径*/
+        #{cataDescribe},/*描述*/
+        #{fileNumber},/*文件数量*/
+        #{orderNo},/*排序号*/
+        #{createTime},/*创建时间*/
+        #{effetive}/*有效标志(0-无效 1-有效)*/
+        )
+    </insert>
+
+    <!--新增 文件管理表-->
+    <insert id="insertFileManager" parameterType="com.lzq.selfdiscipline.business.bean.FileManagerBean">
+        INSERT INTO file_manager(
+        id,
+        file_name,/*文件名称*/
+        file_type,/*文件类型*/
+        file_size,/*文件大小*/
+        file_url,/*文件相对路径*/
+        file_preview_url,/*文件可预览相对路径*/
+        add_time/*添加时间*/
+        ) VALUES(
+        #{id},
+        #{fileName},/*文件名称*/
+        #{fileType},/*文件类型*/
+        #{fileSize},/*文件大小*/
+        #{fileUrl},/*文件相对路径*/
+        #{filePreviewUrl},/*文件可预览相对路径*/
+        #{addTime}/*添加时间*/
+        )
+    </insert>
+
+    <!--新增 目录文件管理表-->
+    <insert id="insertCatalogueFile" parameterType="com.lzq.selfdiscipline.business.bean.CatalogueFileBean">
+        INSERT INTO catalogue_file(
+        id,
+        user_file_catalogue_id,/*用户文件目录id*/
+        file_manager_id/*文件管理id*/
+        ) VALUES(
+        #{id},
+        #{userFileCatalogueId},/*用户文件目录id*/
+        #{fileManagerId}/*文件管理id*/
+        )
+    </insert>
+
+    <!--根据文件id查询文件信息-->
+    <select id="queryFileById" resultType="java.util.Map">
+        SELECT tb1.id AS catalogueFileID,
+        tb2.id AS fileId,
+        tb2.file_name AS fileName,
+        tb2.file_type AS fileType,
+        tb2.file_size AS fileSize,
+        tb2.file_url AS fileUrl,
+        tb2.file_preview_url AS filePreviewUrl,
+        DATE_FORMAT(tb2.add_time, '%Y-%m-%d %H:%i:%s') AS addTime,
+        tb3.id AS catalogueId,
+        tb3.catalogue_pid AS cataloguePid,/*目录父id*/
+        tb3.catalogue_name AS catalogueName,/*目录名称*/
+        tb3.catalogue_path AS cataloguePath,/*目录绝对路径*/
+        tb3.catalogue_id_path AS catalogueIdPath,/*目录id绝对路径*/
+        tb3.file_number AS fileNumber/*文件数量*/
+        FROM catalogue_file tb1
+        INNER JOIN file_manager tb2/*文件管理表*/
+        ON tb2.id = tb1.file_manager_id/*文件管理id*/
+        INNER JOIN user_file_catalogue tb3
+        ON tb3.id = tb1.user_file_catalogue_id /*用户文件目录id*/
+        AND tb3.user_id = #{userid}/*用户id*/
+        AND tb3.effetive = #{effetive}/*有效标志(0-无效 1-有效)*/
+        WHERE tb2.id = #{fileId}
+    </select>
+
+    <!--根据id 删除 文件管理表-->
+    <delete id="deleteFileManagerById">
+        DELETE FROM file_manager WHERE id = #{id}
+    </delete>
+
+    <!--根据id 删除 目录文件管理表-->
+    <delete id="deleteCatalogueFileById">
+        DELETE FROM catalogue_file WHERE id = #{id}
+    </delete>
+</mapper>

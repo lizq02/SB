@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzq.selfdiscipline.ta.mapper.LoginMapper">
+    <sql id="user">
+        a.id AS id,
+        a.username AS username,/*用户名称*/
+        a.loginid AS loginid,/*用户账号*/
+        a.password AS password,/*用户密码*/
+        a.register_time AS registerTime,/*注册时间*/
+        a.effetive AS effetive/*有效标志(0-无效 1-有效)*/
+    </sql>
+
+    <!--根据登录账号id 获取用户信息-->
+    <select id="getUserByLoginid" resultType="com.lzq.selfdiscipline.business.bean.UserBean">
+        SELECT
+        <include refid="user" />
+         FROM user a
+        WHERE a.loginid = #{loginid}
+          AND a.effetive = #{effetive}
+    </select>
+</mapper>

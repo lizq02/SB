@@ -16,6 +16,8 @@ Base = new Object();
  * @param type (默认: "POST") 请求方式 ("POST" 或 "GET")， 默认为 "POST"。
  */
 Base.submit = function (submitIds, url, parameter, onSubmit, successCallback, failCallback, async, type) {
+    // 加载蒙层
+    var loadingId = Base.showMask();
     // 参数校验
     submitIds = (submitIds == null) ? "" : submitIds;
     url = (url == null) ? "" : url;
@@ -23,8 +25,9 @@ Base.submit = function (submitIds, url, parameter, onSubmit, successCallback, fa
     onSubmit = (onSubmit == null) ? function () {
         return true;
     } : onSubmit;
-    async = (async == true) ? true : false;
-    type = (async === "GET") ? "GET" : "POST";
+    async = (async != true) ? true : false;
+    type = (type == null) ? "" : type;
+    type = (type.toUpperCase() === "GET") ? "GET" : "POST";
     // 设置函数默认参数
     var settings = {
         submitIds: "",
@@ -32,6 +35,7 @@ Base.submit = function (submitIds, url, parameter, onSubmit, successCallback, fa
         type: type,
         parameter: {},
         onSubmit: function () {
+            return true;
         },
         async: true,
         timeout: 10000,/*设置请求超时时间，毫秒*/
@@ -44,7 +48,7 @@ Base.submit = function (submitIds, url, parameter, onSubmit, successCallback, fa
             alert("服务器内部错误,请联系系统管理员!")
         }
     };
-    jQuery.extend(settings, {
+    var nowSettings = {
         submitIds: submitIds,
         url: url,
         parameter: parameter,
@@ -53,7 +57,39 @@ Base.submit = function (submitIds, url, parameter, onSubmit, successCallback, fa
         successCallback: successCallback,
         failCallback: failCallback,
         type: type
-    });
+    };
+    if (parameter != null) {
+        nowSettings.parameter = parameter;
+    } else {
+        nowSettings.parameter = {};
+    }
+    if (onSubmit != null) {
+        nowSettings.onSubmit = onSubmit;
+    } else {
+        nowSettings.onSubmit = function () {
+            return true;
+        };
+    }
+    if (async != null) {
+        nowSettings.async = async;
+    } else {
+        nowSettings.async = true;
+    }
+    if (successCallback != null) {
+        nowSettings.successCallback = successCallback;
+    } else {
+        nowSettings.successCallback = function (data, request) {
+        };
+    }
+    if (failCallback != null) {
+        nowSettings.failCallback = failCallback;
+    } else {
+        nowSettings.failCallback = function (data, request) {
+            alert("服务器内部错误,请联系系统管理员!")
+        };
+    }
+    jQuery.extend(settings, nowSettings);
+    settings.onSubmit();
     var data = parameter;
     if (settings.submitIds != null && settings.submitIds.length > 0) {
         var formIds = settings.submitIds.trim().split(",");
@@ -81,11 +117,15 @@ Base.submit = function (submitIds, url, parameter, onSubmit, successCallback, fa
         success: function (data, textStatus, XMLHttpRequest) {
             // data 可能是 xmlDoc, jsonObj, html, text, 等等...
             settings.successCallback(data, XMLHttpRequest);
+            Base.hideMask(loadingId);
         },
         /*XMLHttpRequest 对象、错误信息、（可选）捕获的异常对象。
         如果发生了错误，错误信息（第二个参数）除了得到null之外，还可能是"timeout", "error", "notmodified" 和 "parsererror"。*/
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-            settings.failCallback(data, XMLHttpRequest);
+            if (XMLHttpRequest.status != 200) {
+                settings.failCallback(data, XMLHttpRequest);
+            }
+            Base.hideMask(loadingId);
         }
     });
 }
@@ -140,11 +180,11 @@ Base.submit = function (submitIds, url, parameter, onSubmit, successCallback, fa
  * @param height 窗口高度
  * @param onClose 窗口关闭回调函数
  */
-Base.openWindow = function(id, title, url, parameter, width, height, onClose) {
+Base.openWindow = function (id, title, url, parameter, width, height, onClose) {
     // 获取当前窗口高度、宽度
     var documentHeight = $(document).height();
     var documentWidth = $(document).width();
-    var windowHtmlStr = "<div id='" + id + "' class='ta-window-mc' + style='height:" + documentHeight + "px;'>";
+    var windowHtmlStr = "<div id='" + id + "' class='ta-window-mc' closeFn='" + onClose + "' + style='height:" + documentHeight + "px;'>";
     width = (width || "400px") + "";
     height = (height || "400px") + "";
     var top;
@@ -176,12 +216,13 @@ Base.openWindow = function(id, title, url, parameter, width, height, onClose) {
         "'           historyTop='" + top + "' historyLeft='" + left + "' onclick='windowMaximizeOnclick(this)'></div>" +
         "        </div>";
     var src = url;
-    if (parameter != undefined && parameter != null){
+    if (parameter != undefined && parameter != null) {
         var index = 0;
-        for (var key in parameter){
-            if (index === 0){
+        for (var key in parameter) {
+            if (index === 0) {
+                index++;
                 src += "?" + key + "=" + parameter[key];
-            }else {
+            } else {
                 src += "&" + key + "=" + parameter[key];
             }
         }
@@ -204,11 +245,11 @@ function windowMaximizeOnclick(obj) {
     var id = name.substring(0, name.lastIndexOf("_"));
     var status = obj.attr("status");
     var node = $("#" + id + " .ta-window-div");
-    if (status == "min"){
+    if (status == "min") {
         // 放大
-        node.attr("style","height:95%;width:100%;top:0px;left:0px;");
+        node.attr("style", "height:95%;width:100%;top:0px;left:0px;");
         obj.attr("status", "max");
-    }else if (status == "max"){
+    } else if (status == "max") {
         // 缩小
         $("#" + id + " .ta-window-div").attr("style",
             "height:" + obj.attr("historyHeight") + ";width:" + obj.attr("historyWidth") +
@@ -224,6 +265,217 @@ function windowCloseOnclick(obj) {
 }
 
 // 关闭窗口
-Base.closeWindow = function(id) {
+Base.closeWindow = function (id) {
+    var nodes = document.getElementById(id).childNodes[0].childNodes[0].childNodes;
+    for (var index in nodes) {
+        if (nodes[index].className != undefined && nodes[index].className == "pull-right ta-window-close") {
+            nodes[index].click();
+        }
+    }
     document.getElementsByTagName("BODY").item(0).removeChild(document.getElementById(id));
+}
+
+/**
+ * 下拉树初始化方法
+ * 如：<div id="selectTest"></div>
+ * @param params selectInit({id: "selectTest", isOpen: true, rootValue: "0", keyId: "id", keyValue: "name", keyPid: "pid", data: [{"id": "1", "name": "下拉1", "pid": "0"}, {"id": "2", "name": "下拉2", "pid": "0"},
+                {"id": "11", "name": "下拉3", "pid": "1"}, {"id": "12", "name": "下拉4", "pid": "1"}]});
+ */
+Base.selectInit = function (params) {
+    $("#" + params.id).addClass("position-relative");
+    $("#" + params.id).data("data", params);
+    var htmlStr = "<input class='form-control' readonly='readonly' style='background-color: white'/>";
+    htmlStr += "<div class='select-div hidden'>";
+    if (params.data.length < 1) {
+        htmlStr += "暂无任何可选数据"
+    } else {
+        var keyId = params.keyId;
+        var keyValue = params.keyValue;
+        var keyPid = params.keyPid;
+        var rootValue = params.rootValue;
+        var data = params.data;
+        var item;
+        var icon;
+        if (params.isOpen == false) {
+            icon = "▼";
+        } else {
+            icon = "▲";
+        }
+        for (var index in data) {
+            item = data[index];
+            if (item[keyPid] == rootValue) {
+                htmlStr += "<div class='select-option-div' keyId='" + item[keyId] + "' " +
+                    "keyValue='" + item[keyValue] + "' keyPid='" + item[keyPid] + "' level='1'>";
+                if (isParent(item[keyId], data, keyPid)) {
+                    htmlStr += "<span isParent='true' keyId='" + item[keyId] + "'>" + icon + "</span>";
+                } else {
+                    htmlStr += "<span style='visibility:hidden;'>" + icon + "</span>";
+                }
+                htmlStr += item[keyValue] + "</div>";
+                htmlStr += getSonHtmlStr(item, data, 1, keyId, keyValue, keyPid);
+            }
+        }
+    }
+    htmlStr += "</div>";
+    $("#" + params.id).html(htmlStr);
+    // 选择子项事件
+    $("#" + params.id + " .select-option-div").click(function () {
+        var inputNode = $("#" + params.id + " > input");
+        inputNode.val($(this).attr("keyValue"));
+        inputNode.data("nodeId", $(this).attr("keyId"));
+        inputNode.data("nodeValue", $(this).attr("keyValue"));
+        inputNode.data("nodePid", $(this).attr("keyPid"));
+        var node = $("#" + params.id + " > .select-div");
+        node.removeClass("show");
+        node.addClass("hidden");
+    });
+    // input框获取焦点事件
+    $("#" + params.id + " > input").focus(function () {
+        var node = $("#" + params.id + " > .select-div");
+        node.removeClass("hidden");
+        node.addClass("show");
+    });
+    /*// input框失去焦点事件
+    $("#" + params.id + " > input").blur(function () {
+        var node = $("#" + params.id + " > .select-div");
+        node.removeClass("show");
+        node.addClass("hidden");
+    });*/
+    // 判断是否显示
+    if (params.isOpen == false) {
+        $("#" + params.id + " .select-option-div").each(function (i, n) {
+            if ($(this).attr("level") > 1) {
+                $(this).addClass("hidden");
+            }
+        });
+    }
+    // 子节点 显示/隐藏切换
+    $("#" + params.id + " span[isParent='true']").click(function (e) {
+        window.event ? window.event.cancelBubble = true : e.stopPropagation();
+        if ($(this).text() == "▼") {
+            $(this).text("▲");
+        } else {
+            $(this).text("▼");
+        }
+        var keyId = $(this).attr("keyId");
+        $("#" + params.id + " .select-option-div[keyPid='" + keyId + "']").each(function (i, n) {
+            if (n.className.indexOf("hidden") > -1) {
+                $(n).addClass("show");
+                $(n).removeClass("hidden");
+            } else {
+                $(n).addClass("hidden");
+                $(n).removeClass("show");
+            }
+        });
+    });
+
+    /**
+     * 迭代函数：获取节点及子节点的html字符
+     * @param node 节点json对象
+     * @param data 所有节点json数组
+     * @param level 层级
+     * @param keyId 存储节点ID的key值
+     * @param keyValue 存储节点value的key值
+     * @param keyPid 存储节点pid的key值
+     */
+    function getSonHtmlStr(node, data, level, keyId, keyValue, keyPid) {
+        level++;
+        var html = "";
+        var id = node[keyId];
+        var item;
+        var paddingLeft = level * 10;
+        for (var index in data) {
+            item = data[index];
+            if (item[keyPid] == id) {
+                html += "<div class='select-option-div' style='padding-left: " + paddingLeft + "px;' keyId='" + item[keyId] + "' " +
+                    "keyValue='" + item[keyValue] + "' keyPid='" + item[keyPid] + "' level='" + level + "'>";
+                if (isParent(item[keyId], data, keyPid)) {
+                    html += "<span isParent='true' keyId='" + item[keyId] + "'>" + icon + "</span>";
+                } else {
+                    html += "<span style='visibility:hidden;'>" + icon + "</span>";
+                }
+                html += item[keyValue] + "</div>";
+                if (isParent(item["id"], data, keyPid)) {
+                    html += getSonHtmlStr(item, data, ++level, keyId, keyValue, keyPid);
+                }
+            }
+        }
+        return html;
+    }
+
+    /**
+     * 判断该节点是否是父节点
+     * @param id 当前节点id
+     * @param list 集合list
+     * @param pid 存储节点pid的key值
+     * @returns {boolean}
+     */
+    function isParent(id, list, pid) {
+        var flag = false;
+        $.each(list, function (i, n) {
+            if (n[pid] == id) {
+                flag = true;
+                return false;
+            }
+        });
+        return flag;
+    }
+}
+
+Base.setSelectData = function (id, valueId) {
+    var params = $("#" + id).data("data");
+    var keyId = params.keyId;
+    var keyValue = params.keyValue;
+    var keyPid = params.keyPid;
+    var data = params.data;
+    $.each(data, function (i, n) {
+        if (n[keyId] == valueId) {
+            var inputNode = $("#" + id + " > input");
+            inputNode.val(n[keyValue]);
+            inputNode.data("nodeId", n[keyId]);
+            inputNode.data("nodeValue", n[keyValue]);
+            inputNode.data("nodePid", n[keyPid]);
+            return false;
+        }
+    });
+}
+
+Base.getSelectData = function (id) {
+    var inputNode = $("#" + id + " > input");
+    return {
+        nodeId: inputNode.data("nodeId"),
+        nodeValue: inputNode.data("nodeValue"),
+        nodePid: inputNode.data("nodePid")
+    };
+}
+
+/**
+ * 让某一个面板出现半透明蒙层，提示：读取中
+ * @param id 面板的id，如果不传或null就是整个页面
+ */
+Base.showMask = function (id) {
+    var node;
+    if (id != undefined && id != null && id != ""){
+        node = $("#" + id)[0];
+    }else {
+        node = window.document.body;
+    }
+    var loadingId = new Date().getMilliseconds();
+    var loading = "<div class='show loading' id='" + loadingId + "'>\n" +
+        "        <div style='position: relative; left: calc(50% - 30px); top: 50%;font-size: 18px;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;'>\n" +
+        "        请求中...\n" +
+        "        </div>\n" +
+        "        </div>";
+    $(node).append(loading);
+    return loadingId;
+}
+
+/**
+ * 隐藏蒙层
+ * @param loadingId 蒙层id
+ */
+Base.hideMask = function (loadingId) {
+    var elem = $("#" + loadingId)[0];
+    elem.parentNode.removeChild(elem);
+    // $('#loading').modal('hide');
 }
