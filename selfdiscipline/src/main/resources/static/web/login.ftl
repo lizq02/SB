@@ -60,7 +60,7 @@
 </body>
 <script>
     $(document).ready(function () {
-    })
+    });
 
     // 登录
     function fnLogin() {
@@ -98,7 +98,7 @@
 
     // 注册
     function fnRegister() {
-
+        location.href = "loginController!registerPage.do";
     }
 
     // 页面加载时，生成随机验证码

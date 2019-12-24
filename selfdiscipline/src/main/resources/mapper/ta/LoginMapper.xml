@@ -18,4 +18,23 @@
         WHERE a.loginid = #{loginid}
           AND a.effetive = #{effetive}
     </select>
+
+    <!--新增用户-->
+    <insert id="insertUser" parameterType="com.lzq.selfdiscipline.business.bean.UserBean">
+        INSERT INTO user (
+        id,
+        username,/*用户名称*/
+        loginid,/*用户账号*/
+        password,/*用户密码*/
+        register_time,/*注册时间*/
+        effetive/*有效标志(0-无效 1-有效)*/
+        ) VALUE (
+        #{id},
+        #{username},/*用户名称*/
+        #{loginid},/*用户账号*/
+        #{password},/*用户密码*/
+        #{registerTime},/*注册时间*/
+        #{effetive}/*有效标志(0-无效 1-有效)*/
+        )
+    </insert>
 </mapper>

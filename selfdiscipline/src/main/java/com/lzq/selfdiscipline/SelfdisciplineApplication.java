@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.*;
 
@@ -18,11 +20,16 @@ import java.util.List;
 @SpringBootApplication
 @EnableTransactionManagement
 @MapperScan({"com.lzq.selfdiscipline.**.mapper"})
-public class SelfdisciplineApplication extends WebMvcConfigurationSupport {
+public class SelfdisciplineApplication extends SpringBootServletInitializer implements WebMvcConfigurer {
     private Logger logger = LoggerFactory.getLogger(SelfdisciplineApplication.class);
 
     public static void main(String[] args) {
         SpringApplication.run(SelfdisciplineApplication.class, args);
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        return builder.sources(this.getClass());
     }
 
     /**
@@ -34,6 +41,7 @@ public class SelfdisciplineApplication extends WebMvcConfigurationSupport {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         logger.info("addResourceHandlers start.");
         registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
+        logger.info("resourceHandler('/static/**')         resourceLocations('classpath:/static/')");
         /* 配置虚拟路径映射：映射到对应文件位置
          * 注意：window系统，配置文件路径需要加 file: 前缀，如file:F:\xxx\xxx\
          */
@@ -42,13 +50,13 @@ public class SelfdisciplineApplication extends WebMvcConfigurationSupport {
         if (os.startsWith("window")) {
             filePrefix = "file:" + SystemProperties.windowsFilePath;
         } else if (os.startsWith("linux")) {
-            filePrefix = SystemProperties.linuxFilePath;
+            filePrefix = "file:" + SystemProperties.linuxFilePath;
         }else {
             filePrefix = null;
         }
+        logger.info("resourceHandler('/" + SystemProperties.virtualPathmap + "/**')          resourceLocations('" + filePrefix + "')");
         registry.addResourceHandler("/" + SystemProperties.virtualPathmap + "/**").addResourceLocations(filePrefix);
         logger.info("addResourceHandlers stop.");
-        super.addResourceHandlers(registry);
     }
 
     // 登录拦截器
@@ -67,12 +75,12 @@ public class SelfdisciplineApplication extends WebMvcConfigurationSupport {
         List<String> excludePathPatterns = new LinkedList<>();
         excludePathPatterns.add("/loginController.do");
         excludePathPatterns.add("/loginController!login.do");
-        excludePathPatterns.add("/register");
+        excludePathPatterns.add("/loginController!registerPage.do");
+        excludePathPatterns.add("/loginController!register.do");
         excludePathPatterns.add("/static/**");
         registry.addInterceptor(loginInterceptor).addPathPatterns("/**").excludePathPatterns(excludePathPatterns);
 
         logger.info("addInterceptors stop.");
-        super.addInterceptors(registry);
     }
 
     @Override
@@ -87,8 +95,7 @@ public class SelfdisciplineApplication extends WebMvcConfigurationSupport {
     }
 
     @Override
-    protected void addViewControllers(ViewControllerRegistry registry) {
-        super.addViewControllers(registry);
+    public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/index").setViewName("/loginController.do");
     }
 }

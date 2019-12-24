@@ -1,5 +1,9 @@
 package com.lzq.selfdiscipline.business.util;
 
+import com.artofsolving.jodconverter.DocumentConverter;
+import com.artofsolving.jodconverter.openoffice.connection.OpenOfficeConnection;
+import com.artofsolving.jodconverter.openoffice.connection.SocketOpenOfficeConnection;
+import com.artofsolving.jodconverter.openoffice.converter.StreamOpenOfficeDocumentConverter;
 import org.apache.commons.codec.binary.Base64;
 import com.lzq.selfdiscipline.business.SystemProperties;
 import org.apache.commons.io.FileUtils;
@@ -25,7 +29,7 @@ public class FileUtil {
     private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
     // 可支持文件后缀
-    public static final List<String> list = Arrays.asList("doc", "docx", "xls", "xlsx", "ppt", "pptx", "html", "htm", "pdf");
+    public static final List<String> list = Arrays.asList("doc", "xls", "ppt", "html", "htm", "pdf");
     // window系统前缀
     private static final String WINDOW_NAME = "window";
     // linux系统前缀
@@ -128,7 +132,12 @@ public class FileUtil {
         }
         logger.info("----------------开始转换文件:" + sourceFile);
         // 转换
-        OpenOfficeConSingleton.getConverter().convert(inputFile, outputFile);
+        // OpenOfficeConSingleton.getConverter().convert(inputFile, outputFile);
+        OpenOfficeConnection connection =
+                new SocketOpenOfficeConnection(SystemProperties.openofficeHost, SystemProperties.openofficePort);
+        connection.connect();
+        DocumentConverter converter = new StreamOpenOfficeDocumentConverter(connection);
+        converter.convert(inputFile, outputFile);
         logger.info("----------------结束转换文件:" + sourceFile);
     }
 
@@ -212,7 +221,7 @@ public class FileUtil {
                 ImageIO.write(image, "png", imgFile);
                 // 追加图片到网页文件中
                 buffer.append("<img src=\"data:image/png;base64," + getBase64String(imgFile) + "\"/>\r\n");
-                imgFile.deleteOnExit();
+                imgFile.delete();
             }
             // 构造html文件
             buffer.append("</body>\r\n");
@@ -248,5 +257,24 @@ public class FileUtil {
         byte[] refereeFileOriginalBytes = FileUtils.readFileToByteArray(file);
         byte[] refereeFileBase64Bytes = Base64.encodeBase64(refereeFileOriginalBytes);
         return new String(refereeFileBase64Bytes, "UTF-8");
+    }
+
+    /**
+     * 删除文件
+     *
+     * @param fileUrl
+     */
+    public static void deleteFile(String fileUrl) {
+        // 获取 文件存储路径前缀
+        String filePrefix = getFilePrefix();
+        File file = new File(filePrefix + File.separator + fileUrl);
+        if (file.exists()) {
+            file.delete();
+        }
+        // 删除pdf文件
+        File pdfFile = new File(filePrefix + File.separator + fileUrl.substring(0, fileUrl.lastIndexOf(".")) + ".pdf");
+        if (pdfFile.exists()) {
+            pdfFile.delete();
+        }
     }
 }

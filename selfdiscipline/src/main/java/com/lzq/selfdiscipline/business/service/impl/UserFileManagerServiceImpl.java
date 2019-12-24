@@ -310,6 +310,9 @@ public class UserFileManagerServiceImpl extends BaseServiceImpl implements UserF
             msg.setMessage("删除文件失败");
             throw new Exception("删除文件失败");
         }
+        // 删除文件
+        Optional.ofNullable(map.get("fileUrl")).ifPresent(url -> FileUtil.deleteFile(url.toString()));
+        Optional.ofNullable(map.get("filePreviewUrl")).ifPresent(url -> FileUtil.deleteFile(url.toString()));
         return msg;
     }
 }

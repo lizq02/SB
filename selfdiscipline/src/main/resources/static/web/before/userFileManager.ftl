@@ -32,15 +32,15 @@
         </div>
         <div class="col-xs-9 col-md-9 row-right-div">
             <div style="border-bottom: 1px solid #164fff; padding-bottom: 2px;">
-                <span class="orderBy" onclick="fnOrderTime()">
-                    <span id="timeDown" class="orderBySpan orderBySpanSelect">↓</span>
-                    <span id="timeUp" class="orderBySpan">↑</span>
-                    按时间排序
-                </span>
                 <span class="orderBy" onclick="fnOrderName()">
-                    <span id="nameDown" class="orderBySpan">↓</span>
+                    <span id="nameDown" class="orderBySpan orderBySpanSelect">↓</span>
                     <span id="nameUp" class="orderBySpan">↑</span>
                     按名称排序
+                </span>
+                <span class="orderBy" onclick="fnOrderTime()">
+                    <span id="timeDown" class="orderBySpan">↓</span>
+                    <span id="timeUp" class="orderBySpan">↑</span>
+                    按时间排序
                 </span>
                 <button type="button" class="btn btn-default" onclick="fnInsertFile()">新增</button>
             </div>
@@ -97,7 +97,7 @@
     });
 
     // 排序方式：timeDown-时间降序 timeUp-时间升序 nameDown-名称降序 nameUp-时间升序
-    var ORDER_VALUE = "timeDown";
+    var ORDER_VALUE = "nameDown";
     // 排序数组
     var ORDER_ARRAY = [];
 
@@ -416,6 +416,7 @@
             if (data.code == "0") {
                 var pageMsg = data.data;
                 var fileMsgs = pageMsg.list;
+                ORDER_ARRAY = fileMsgs;
                 if (fileMsgs != undefined && fileMsgs != null && fileMsgs.length > 0) {
                     var htmlStr_1 = "";
                     var htmlStr_2 = "";
@@ -575,13 +576,16 @@
                             fileDiv_3.html(htmlStr_3);
                             var pageMsg = data.data;
                             var fileMsgs = pageMsg.list;
-                            for (var index in fileMsgs) {
+                            ORDER_ARRAY = fileMsgs;
+                            // 排序方式排序
+                            fnOrder();
+                            for (var index in ORDER_ARRAY) {
                                 if (index < MAX_FILE_NUMBER) {
-                                    htmlStr_1 = appendFileItemHtmlStr(fileMsgs[index], htmlStr_1, index);
+                                    htmlStr_1 = appendFileItemHtmlStr(ORDER_ARRAY[index], htmlStr_1, index);
                                 } else if (index < MAX_FILE_NUMBER * 2) {
-                                    htmlStr_2 = appendFileItemHtmlStr(fileMsgs[index], htmlStr_2, index);
+                                    htmlStr_2 = appendFileItemHtmlStr(ORDER_ARRAY[index], htmlStr_2, index);
                                 } else {
-                                    htmlStr_3 = appendFileItemHtmlStr(fileMsgs[index], htmlStr_3, index);
+                                    htmlStr_3 = appendFileItemHtmlStr(ORDER_ARRAY[index], htmlStr_3, index);
                                 }
                             }
                             fileDiv_1.html(htmlStr_1);
@@ -643,10 +647,13 @@
                 var pageMsg = data.data;
                 var total = pageMsg.total;
                 var fileMsgs = pageMsg.list;
-                if (fileMsgs != undefined && fileMsgs != null && fileMsgs.length > 0) {
+                ORDER_ARRAY = fileMsgs;
+                // 排序方式排序
+                fnOrder();
+                if (ORDER_ARRAY != undefined && ORDER_ARRAY != null && ORDER_ARRAY.length > 0) {
                     var htmlStr_1 = "";
-                    for (var index in fileMsgs) {
-                        htmlStr_1 = appendFileItemHtmlStr_1(fileMsgs[index], htmlStr_1, index);
+                    for (var index in ORDER_ARRAY) {
+                        htmlStr_1 = appendFileItemHtmlStr_1(ORDER_ARRAY[index], htmlStr_1, index);
                     }
                     if (pageSize <= total) {
                         htmlStr_1 += "<div class='viewMore' title='点击查看更多' onclick='winRightDivClick(1, parseInt(MAX_FILE_NUMBER) + parseInt(WINRIGHT_PAGESIZE))'>>>>查看更多>>></div>";

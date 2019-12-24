@@ -1,11 +1,15 @@
 package com.lzq.selfdiscipline.ta.controller;
 
+import com.lzq.selfdiscipline.business.bean.MessageBean;
 import com.lzq.selfdiscipline.business.bean.UserBean;
+import com.lzq.selfdiscipline.business.util.RedisClusterSingleton;
+import com.lzq.selfdiscipline.ta.constant.BusinessCode;
 import com.lzq.selfdiscipline.ta.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
+import redis.clients.jedis.JedisCluster;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -25,7 +29,7 @@ public class LoginController {
 
     /**
      * 登录页面
-     *
+     * @param request
      * @return
      */
     @GetMapping("loginController.do")
@@ -35,13 +39,24 @@ public class LoginController {
     }
 
     /**
+     * 注册页面
+     * @param request
+     * @return
+     */
+    @GetMapping("loginController!registerPage.do")
+    public String registerPage(HttpServletRequest request) {
+        request.setAttribute("sessionId", request.getSession().getId());
+        return "register";
+    }
+
+    /**
      * 登录
      *
      * @param request
      * @return
      */
     @RequestMapping("loginController!login.do")
-    public void login(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void login(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String username = request.getParameter("username");
         UserBean userBean = loginService.queryUserByLoginid(username);
         HttpSession session = request.getSession();
@@ -73,5 +88,29 @@ public class LoginController {
             session.setAttribute("errormsg", "提示:用户名密码错误");
             response.sendRedirect("loginController.do");
         }
+    }
+
+    /**
+     * 注册
+     * @param loginid 用户账号
+     * @param username 用户名称
+     * @param password 用户密码
+     * @param password_ 用户密码
+     * @param phonenumber 电话
+     * @param checkCode 验证码
+     */
+    @PostMapping("loginController!register.do")
+    @ResponseBody
+    public MessageBean register(@RequestParam("loginid") String loginid, @RequestParam("username") String username,
+                                @RequestParam("password") String password, @RequestParam("password_") String password_,
+                                @RequestParam("phonenumber") String phonenumber, @RequestParam("checkCode") String checkCode) {
+        MessageBean msg;
+        try {
+            msg =  loginService.register(loginid, username, password, password_, phonenumber, checkCode);
+        } catch (Exception e) {
+            msg = MessageBean.getInstance(BusinessCode.EXCEPTION.getCode(), e.getMessage(), void.class);
+            e.printStackTrace();
+        }
+        return msg;
     }
 }

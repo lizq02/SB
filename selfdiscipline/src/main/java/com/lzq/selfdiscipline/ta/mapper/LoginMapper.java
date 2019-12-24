@@ -12,4 +12,10 @@ public interface LoginMapper {
      * @return
      */
     UserBean getUserByLoginid(@Param("loginid") String loginid, @Param("effetive") String effetive);
+
+    /**
+     * 新增 用户
+     * @param userBean
+     */
+    void insertUser(UserBean userBean);
 }

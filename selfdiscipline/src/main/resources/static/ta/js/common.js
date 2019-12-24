@@ -16,8 +16,6 @@ Base = new Object();
  * @param type (默认: "POST") 请求方式 ("POST" 或 "GET")， 默认为 "POST"。
  */
 Base.submit = function (submitIds, url, parameter, onSubmit, successCallback, failCallback, async, type) {
-    // 加载蒙层
-    var loadingId = Base.showMask();
     // 参数校验
     submitIds = (submitIds == null) ? "" : submitIds;
     url = (url == null) ? "" : url;
@@ -89,7 +87,11 @@ Base.submit = function (submitIds, url, parameter, onSubmit, successCallback, fa
         };
     }
     jQuery.extend(settings, nowSettings);
-    settings.onSubmit();
+    if (settings.onSubmit() === false) {
+        return false;
+    }
+    // 加载蒙层
+    var loadingId = Base.showMask();
     var data = parameter;
     if (settings.submitIds != null && settings.submitIds.length > 0) {
         var formIds = settings.submitIds.trim().split(",");

@@ -6,7 +6,6 @@ import com.lzq.selfdiscipline.business.bean.UserFileCatalogueBean;
 import com.lzq.selfdiscipline.ta.constant.BusinessCode;
 import com.lzq.selfdiscipline.ta.interceptors.LoginInterceptor;
 import com.lzq.selfdiscipline.business.service.UserFileManagerService;
-import com.lzq.selfdiscipline.ta.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,7 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping("/userFileManager")
-public class UserFileManagerController extends BaseController {
+public class UserFileManagerController {
 
     @Autowired
     private UserFileManagerService userFileManagerService;

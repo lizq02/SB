@@ -25,22 +25,23 @@ public class SystemProperties {
     // windows系统文件路径前缀
     @Value("${filepath.windows_file_path}")
     private String windows_file_path;
-
     // linux系统文件路径前缀
     @Value("${filepath.linux_file_path}")
     private String linux_file_path;
+
     // openoffice 连接host地址
     @Value("${openoffice.host}")
     private String openoffice_host;
     // openoffice 端口号
     @Value("${openoffice.port}")
     private Integer openoffice_port;
+
     // 虚拟路径映射
     @Value("${virtualPathmap}")
     private String virtual_pathmap;
 
     @PostConstruct
-    public void set() {
+    private void init() {
         Objects.requireNonNull(this.windows_file_path, "获取文件存储路径前缀失败!!!");
         Objects.requireNonNull(this.linux_file_path, "获取文件存储路径前缀失败!!!");
         Objects.requireNonNull(this.openoffice_host, "获取openoffice连接地址失败!!!");
