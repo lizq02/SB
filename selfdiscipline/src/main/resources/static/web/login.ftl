@@ -57,6 +57,10 @@
         <button type="button" class="btn btn-link" onclick="fnRegister()">注册</button>
     </div>
 </form>
+<div class="text-right" style="position: absolute;top: 95%;width: 100%;">
+    If you need a code reference, please visit my github project address
+    <mark><a href="https://github.com/lizq02/SB.git">项目地址</a></mark>
+</div>
 </body>
 <script>
     $(document).ready(function () {
